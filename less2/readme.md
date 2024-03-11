@@ -42,6 +42,7 @@
 [![](https://github.com/Dimanmax/Otus11/blob/main/less2/12.png)](https://github.com/Dimanmax/Otus11/blob/main/less2/12.png)
 
 Проверим подключение по телнет с ПК
+
 [![](https://github.com/Dimanmax/Otus11/blob/main/less2/13.png)](https://github.com/Dimanmax/Otus11/blob/main/less2/13.png)
 
 # Ответы на вопросы:
