@@ -35,12 +35,15 @@ a)	Прописываем no ip domain-lookup
 ![domain-lookup1](domain-lookup1.png)
 
 б) Задаём имя устройству
+
 ![hostnameR1](hostnameR1.png)
 
 в) Шифруем и задаем пароль
+
 ![encryption1](encryption1.png)
 
 г) Делаем баннер
+
 ![banner1](banner1.png)
 
 
@@ -48,15 +51,19 @@ a)	Прописываем no ip domain-lookup
 Назначьте имя хоста и настройте основные параметры устройства.
 
 a)	Прописываем no ip domain-lookup
+
 ![domain-lookup2](domain-lookup2.png) 
 
 б) Задаём имя устройству
+
 ![hostnameS1](hostnameS1.png)
 
 в) Шифруем и задаем пароль
+
 ![encryption2](encryption2.png)
 
 г) Делаем баннер
+
 ![banner2](banner2.png)
 
 ### Часть 2. Ручная настройка IPv6-адресов
@@ -65,15 +72,19 @@ a)	Прописываем no ip domain-lookup
 a)	Назначьте глобальные индивидуальные IPv6-адреса, указанные в таблице адресации обоим интерфейсам Ethernet на R1.
 
  Назначил IP на интерфейс **gig 0/0**
+
  ![НазначениеIPgig00](НазначениеIPgig00.png)
  
  Установил **link-local address**
+
  ![alt text](НазначениеLinklocal.png)
 
  Назначил IP на интерфейс gig 0/1 + установил link-local address
+
  ![alt text](image.png)
 
 b)	Введите команду ``show ipv6 interface brief``, чтобы проверить, назначен ли каждому интерфейсу корректный индивидуальный IPv6-адрес.
+
 ![alt text](image-1.png)
 
 Примечание. Отображаемый локальный адрес канала основан на адресации EUI-64, которая автоматически использует MAC-адрес интерфейса для создания 128-битного локального IPv6-адреса канала.
