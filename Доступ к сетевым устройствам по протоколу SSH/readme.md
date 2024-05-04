@@ -209,14 +209,16 @@ R1(config-line)#
 
 6.	Назначьте cisco в качестве пароля VTY и включите вход в систему по паролю.
 
-Воспользуемся коммандой : password
+Воспользуемся коммандой : `password`
 
+```
 R1(config)#
 R1(config)#line console 0
 R1(config-line)#password cisco
 R1(config-line)#login
 R1(config-line)#end
 R1#
+```
 
 7.	Зашифруйте открытые пароли.
 
@@ -230,10 +232,32 @@ R1#
 
 Скриншот при входе:
 
+![alt text](image-6.png)
 
 9.	Настройте и активируйте на маршрутизаторе интерфейс G0/0/1, используя информацию, приведенную в таблице адресации.
 
+```
+R1(config)#
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#
+```
+
 10.	Сохраните текущую конфигурацию в файл загрузочной конфигурации.
+
+Выполним команду : `copy running-config startup-config `
+
+```
+R1#cop
+R1#copy ru
+R1#copy running-config s
+R1#copy running-config st
+R1#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+R1#
+```
 
 #### Шаг 4. Настройте компьютер PC-A.
 1.	Настройте для PC-A IP-адрес и маску подсети.
@@ -350,7 +374,33 @@ S1#
 ![alt text](image-4.png)
 
 9.	Настройте и активируйте на коммутаторе интерфейс VLAN 1, используя информацию, приведенную в таблице адресации.
+
+Назначим IP Адресс:
+
+```
+S1>en
+Password: 
+S1#conf t
+S1(config)#interface vlan 1
+S1(config-if)#ip address 192.168.1.11 255.255.255.0
+S1(config-if)#
+```
+
+
 10.	Сохраните текущую конфигурацию в файл загрузочной конфигурации.
+
+```
+S1>enable 
+Password: 
+S1#
+S1#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+S1#
+```
+
+
 
 #### Шаг 2. Настройте коммутатор для соединения по протоколу SSH.
 Для настройки протокола SSH на коммутаторе используйте те же команды, которые применялись для аналогичной настройки маршрутизатора в части 2.
