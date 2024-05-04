@@ -225,7 +225,13 @@ S1#
 1.	Подключитесь к коммутатору с помощью консольного подключения и активируйте привилегированный режим EXEC.
 2.	Войдите в режим конфигурации.
 
-![alt text](image-3.png)
+```
+Switch#
+Switch#
+Switch#en
+Switch#conf t
+Switch(config)#
+```
 
 3.	Отключите поиск DNS, чтобы предотвратить попытки маршрутизатора неверно преобразовывать введенные команды таким образом, как будто они являются именами узлов.
 
@@ -234,33 +240,22 @@ S1#
 Switch>
 Switch>en
 Switch#conf t
-Enter configuration commands, one per line.  End with CNTL/Z.
-Switch(config)#no ip domain-looki
 Switch(config)#no ip domain-look
 Switch(config)#no ip domain-lookup 
 Switch(config)#
 ```
-Сразу зададим имя устройству 
+Сразу зададим имя устройству: 
 ```
 Switch#>
 Switch# hostname S1
 ```
-
-4.	Назначьте class в качестве зашифрованного пароля привилегированного режима EXEC.
-
-
-
-5.	Назначьте cisco в качестве пароля консоли и включите вход в систему по паролю.
-6.	Назначьте cisco в качестве пароля VTY и включите вход в систему по паролю.
-7.	Зашифруйте открытые пароли.
-Дополнительно чтобы консольные сообщения не прерывали выполнение команд, используем параметр ```logging synchronous```.
+Дополнительно воспользуемся параметром ```logging synchronous```. чтобы консольные сообщения не прерывали выполнение команд.
 
 Пропишем на устройстве:
 ```
 Switch#en
 Switch#enable 
 Switch#conf t
-Enter configuration commands, one per line.  End with CNTL/Z.
 Switch(config)#line con 
 Switch(config)#line con 0
 Switch(config-line)#loggin
@@ -269,7 +264,44 @@ Switch(config-line)#logging synchronous
 Switch(config-line)#
 ```
 
+4.	Назначьте class в качестве зашифрованного пароля привилегированного режима EXEC.
+
+Выполним команду `enable secret class`
+
+`S1(config)#enable secret class`
+
+5.	Назначьте cisco в качестве пароля консоли и включите вход в систему по паролю.
+
+
+6.	Назначьте cisco в качестве пароля VTY и включите вход в систему по паролю.
+
+Воспользуемся коммандой : `password`
+
+```
+S1(config)#
+S1(config)#line
+S1(config)#line con
+S1(config)#line console 0
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#end
+S1#
+```
+
+7.	Зашифруйте открытые пароли.
+
+Выполним команду `service password-encryption`
+
+`S1(config)#service password-encryption`
+
 8.	Создайте баннер, который предупреждает о запрете несанкционированного доступа.
+
+`S1(config)#banner motd #`
+
+Скриншот при входе:
+
+![alt text](image-4.png)
+
 9.	Настройте и активируйте на коммутаторе интерфейс VLAN 1, используя информацию, приведенную в таблице адресации.
 10.	Сохраните текущую конфигурацию в файл загрузочной конфигурации.
 
@@ -292,31 +324,6 @@ Switch(config-line)#
 
 #### Шаг 1. Посмотрите доступные параметры для клиента SSH в Cisco IOS.
  Используйте вопросительный знак (?), чтобы отобразить варианты параметров для команды `ssh`.
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-**Вопрос:**
-**Ответ:**
-
-**Вопрос:**
-**
-**Ответ:** **
-
-
 
 
 
