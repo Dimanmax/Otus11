@@ -618,6 +618,7 @@ Password:
 S1#conf t
 S1(config)#interface vlan 1
 S1(config-if)#ip address 192.168.1.11 255.255.255.0
+S1(config-if)#no shutdown 
 S1(config-if)#exit
 S1(config)#ip default-gateway 192.168.1.1
 S1(config)#exit 
@@ -643,28 +644,136 @@ S1#
 #### Шаг 2. Настройте коммутатор для соединения по протоколу SSH.
 Для настройки протокола SSH на коммутаторе используйте те же команды, которые применялись для аналогичной настройки маршрутизатора в части 2.
 1.	Настройте имя устройства, как указано в таблице адресации.
+
+Имя задано при первичной настройке.
+
 2.	Задайте домен для устройства.
+
+Выполним команду: `ip domain-name`
+
+```
+S1(config)#ip domain-name mycompany.local
+S1(config)#
+```
+
 3.	Создайте ключ шифрования с указанием его длины.
+
+Выполним команду: `crypto key generate rsa general-keys modulus 2048`
+
+```
+S1(config)#crypto key generate rsa general-keys modulus 2048
+The name for the keys will be: S1.mycompany.local
+
+% The key modulus size is 2048 bits
+% Generating 2048 bit RSA keys, keys will be non-exportable...[OK]
+*Mar 1 2:11:18.76: %SSH-5-ENABLED: SSH 1.99 has been enabled
+S1(config)#
+```
+Сменим версию SSH:
+
+```
+S1(config)#ip ssh version 2
+S1(config)#do show ip ssh
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+S1(config)#
+```
+
+
 4.	Создайте имя пользователя в локальной базе учетных записей.
+
+Выполним команду: `username admin privilege 15 secret Adm1nP@55`
+
+```
+S1(config)#username admin privilege 15 secret Adm1nP@55
+S1(config)#
+```
+
 5.	Активируйте протоколы Telnet и SSH на линиях VTY.
+
+Выполним команду: `line vty 0 5` и `transport input all` 
+
+```
+S1(config)#line vty 0 5
+S1(config-line)#tran
+S1(config-line)#transport in
+S1(config-line)#transport input all
+S1(config-line)#
+```
+
 6.	Измените способ входа в систему таким образом, чтобы использовалась проверка пользователей по локальной базе учетных записей.
+
+```
+S1(config-line)#login local 
+S1(config-line)#
+```
+
+Сохраняем настройки, выполнимм: `write`
+
+```
+S1#write 
+Building configuration...
+[OK]
+S1#
+```
 
 #### Шаг 3. Установите соединение с коммутатором по протоколу SSH.
 Запустите программу Tera Term на PC-A, затем установите подключение по протоколу SSH к интерфейсу SVI коммутатора S1.
 
 Выполним ping с PC-А до S1
 
+```
+C:\>ping 192.168.1.11
+
+Pinging 192.168.1.11 with 32 bytes of data:
+
+Reply from 192.168.1.11: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.11: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.11: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.11: bytes=32 time<1ms TTL=255
+
+Ping statistics for 192.168.1.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+```
+
 Проверяем подключение по telnet
 
+```
+C:\>telnet 192.168.1.11 
+Trying 192.168.1.11 ...Open
+Unauthorized access is strictly prohibited.
 
-Вопрос:
-Удалось ли вам установить SSH-соединение с коммутатором?
+
+User Access Verification
+
+Username: admin
+Password: 
+S1#
+```
+
+
+**Вопрос:** *Удалось ли вам установить SSH-соединение с коммутатором?*
+**Ответ:** *Соединение успешно.*
 
 ### Часть 4. Настройка протокола SSH с использованием интерфейса командной строки (CLI) коммутатора
  Клиент SSH встроен в операционную систему Cisco IOS и может запускаться из интерфейса командной строки. В части 4 вам предстоит установить соединение с маршрутизатором по протоколу SSH, используя интерфейс командной строки коммутатора.
 
-#### Шаг 1. Посмотрите доступные параметры для клиента SSH в Cisco IOS.
- Используйте вопросительный знак (?), чтобы отобразить варианты параметров для команды `ssh`.
+ Подключаемся, вводим пароль.
+
+```
+S1#ssh -l admin 192.168.1.1
+
+Password: 
 
 
+Unauthorized access is strictly prohibited.
 
+R1#
+```
+
+Соединение по SSH от S1 к R1 успешно.
