@@ -64,7 +64,7 @@
 Настройте имя пользователя, используя admin в качестве имени пользователя и Adm1nP@55 в качестве пароля.
 
 ####   Шаг 4. Активируйте протокол SSH на линиях VTY.
-1.	Активируйте протоколы Telnet и SSH на входящих линиях VTY с помощью команды transport input.
+1.	Активируйте протоколы Telnet и SSH на входящих линиях VTY с помощью команды `transport input`.
 2.	Измените способ входа в систему таким образом, чтобы использовалась проверка пользователей по локальной базе учетных записей.
 
 #### Шаг 5. Сохраните текущую конфигурацию в файл загрузочной конфигурации.
@@ -72,7 +72,6 @@
 #### Шаг 6. Установите соединение с маршрутизатором по протоколу SSH.
 1.	Запустите Tera Term с PC-A.
 2.	Установите SSH-подключение к R1. Use the username admin and password Adm1nP@55. У вас должно получиться установить SSH-подключение к R1.
-
 
 ###  Часть 3. Настройка коммутатора для доступа по протоколу SSH
 В части 3 вам предстоит настроить коммутатор для приема подключений по протоколу SSH, а затем установить SSH-подключение с помощью программы Tera Term.
@@ -108,7 +107,8 @@
  Клиент SSH встроен в операционную систему Cisco IOS и может запускаться из интерфейса командной строки. В части 4 вам предстоит установить соединение с маршрутизатором по протоколу SSH, используя интерфейс командной строки коммутатора.
 
 #### Шаг 1. Посмотрите доступные параметры для клиента SSH в Cisco IOS.
- Используйте вопросительный знак (?), чтобы отобразить варианты параметров для команды `ssh`.
+
+Используйте вопросительный знак (?), чтобы отобразить варианты параметров для команды `ssh`.
 ```
 S1# ssh? 
   -c Select encryption algorithm
@@ -118,8 +118,10 @@ S1# ssh?
   -p Connect to this port
   -v Specify SSH Protocol Version
   -vrf Specify vrf name
-  ````
-  **WORD IP-адрес или имя хоста удаленной системы**
+  ```
+
+
+
 
 #### Шаг 2. Установите с коммутатора S1 соединение с маршрутизатором R1 по протоколу SSH.
 1.	Чтобы подключиться к маршрутизатору R1 по протоколу SSH, введите команду –l admin. Это позволит вам войти в систему под именем admin. При появлении приглашения введите в качестве пароля **Adm1nP@55**
@@ -129,14 +131,13 @@ Password:
 Authorized Users Only!
 R1>
 ```
-
 2.	Чтобы вернуться к коммутатору S1, не закрывая сеанс SSH с маршрутизатором R1, нажмите комбинацию клавиш **Ctrl+Shift+6**. Отпустите клавиши **Ctrl+Shift+6** и нажмите **x**. 
 
 Отображается приглашение привилегированного режима EXEC коммутатора.
 ```
 R1>
 S1#
-````
+```
 
 3.	Чтобы вернуться к сеансу SSH на R1, нажмите клавишу **Enter** в пустой строке интерфейса командной строки. Чтобы увидеть окно командной строки маршрутизатора, нажмите клавишу **Enter** еще раз.
 ```
@@ -376,16 +377,149 @@ R1#
 
 #### Шаг 3. Создайте имя пользователя в локальной базе учетных записей.
 Настройте имя пользователя, используя admin в качестве имени пользователя и Adm1nP@55 в качестве пароля.
+
+Выполним команду: `username admin privilege 15 secret Adm1nP@55`
+
+```
+R1(config)#
+R1(config)#username admin privilege 15 secret Adm1nP@55
+R1(config)#
+```
+
+
+
 #### Шаг 4. Активируйте протокол SSH на линиях VTY.
 1.	Активируйте протоколы Telnet и SSH на входящих линиях VTY с помощью команды transport input.
 
-
-
+```
+R1(config-line)#transport input all
+R1(config-line)#
+```
 2.	Измените способ входа в систему таким образом, чтобы использовалась проверка пользователей по локальной базе учетных записей.
+
+Выполним команду `login local`
+
+```
+R1(config-line)#login local 
+R1(config-line)#
+```
+
 #### Шаг 5. Сохраните текущую конфигурацию в файл загрузочной конфигурации.
+
+Выполним перезапись конфига.
+
+```
+R1#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+R1#
+```
+
+
+Выведем полный конфиг комнадой `show running-config`
+
+```
+R1#show running-config 
+Building configuration...
+
+Current configuration : 981 bytes
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname R1
+!
+
+!
+enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+!
+
+ip cef
+no ipv6 cef
+!
+!
+username admin privilege 15 secret 5 $1$mERr$qJb.eHvBN7S590aq.dpRL.
+!
+ip ssh version 2
+no ip domain-lookup
+ip domain-name mycompany.local
+!
+spanning-tree mode pvst
+!
+interface GigabitEthernet0/0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/1
+ ip address 192.168.1.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+!
+ip flow-export version 9
+!
+banner motd ^C
+Unauthorized access is strictly prohibited.^C
+!
+line con 0
+ password 7 0822455D0A16
+ logging synchronous
+ login
+!
+line aux 0
+!
+line vty 0 4
+ login local
+line vty 5
+ login local
+!
+!
+end
+```
+
+
 #### Шаг 6. Установите соединение с маршрутизатором по протоколу SSH.
 1.	Запустите Tera Term с PC-A.
 2.	Установите SSH-подключение к R1. Use the username admin and password Adm1nP@55. У вас должно получиться установить SSH-подключение к R1.
+
+
+`ssh -l admin 192.168.1.1`
+
+Потребуется ввести пароль, вводим и жмём Enter
+
+```
+C:\>ssh
+Cisco Packet Tracer PC SSH
+
+Usage: SSH -l username target
+
+C:\>ssh -l admin 192.168.1.1 
+
+Password: 
+
+Unauthorized access is strictly prohibited.
+
+R1#
+```
+
+Как мы видим из вывода подключение успешно и  мы сразу окаазались привилигированном режиме, т.к при создании пользователя мы указали  максимальный уровень привелегий. `privilege 15`
+
 
 
 
