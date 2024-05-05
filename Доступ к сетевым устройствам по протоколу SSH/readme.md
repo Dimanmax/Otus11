@@ -18,7 +18,7 @@
 ### Часть 3. Настройка коммутатора для доступа по протоколу SSH
 ### Часть 4. SSH через интерфейс командной строки (CLI) коммутатора
 
-
+## Инструкции
 
 ### Часть 1. Настройка основных параметров устройства
 В части 1 потребуется настроить топологию сети и основные параметры, такие как IP-адреса интерфейсов, доступ к устройствам и пароли на маршрутизаторе.
@@ -240,6 +240,7 @@ R1#
 R1(config)#
 R1(config)#interface gigabitEthernet 0/0/1
 R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#no shutdown 
 R1(config-if)#
 ```
 
@@ -263,8 +264,54 @@ R1#
 1.	Настройте для PC-A IP-адрес и маску подсети.
 2.	Настройте для PC-A шлюз по умолчанию.
 
+![alt text](image-7.png)
+
 #### Шаг 5. Проверьте подключение к сети.
 Пошлите с PC-A команду `ping` на маршрутизатор R1. 
+
+Проверим IP адрес PC-A и выполним команду `ping`
+
+```
+C:\>ipconfig
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: 
+   Link-local IPv6 Address.........: FE80::250:FFF:FE0E:BD04
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.3
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     192.168.1.1
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: 
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+
+C:\>ping 192.168.1.1
+
+Pinging 192.168.1.1 with 32 bytes of data:
+
+Reply from 192.168.1.1: bytes=32 time=7ms TTL=255
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 192.168.1.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 7ms, Average = 1ms
+
+C:\>
+
+```
+
 Если эхо-запрос с помощью команды `ping` не проходит, найдите и устраните неполадки подключения.
 
 
@@ -273,13 +320,67 @@ R1#
 При генерации ключа шифрования в качестве его части используются имя устройства и домен. Поэтому эти имена необходимо указать перед вводом команды crypto key.
 Откройте окно конфигурации
 1.	Задайте имя устройства.
+
+Имя устройства было задано ранее, при первичной настройке.
+
 2.	Задайте домен для устройства.
 
+Выполним команду: `ip domain-name`
+
+```
+R1(config)#
+R1(config)#ip domain-name mycompany.local
+R1(config)#
+```
+
 #### Шаг 2. Создайте ключ шифрования с указанием его длины.
+
+Выполним команду: `crypto key generate rsa general-keys modulus 2048`
+
+```
+R1(config)#crypto key generate rsa general-keys mo
+R1(config)#crypto key generate rsa general-keys modulus 2048
+The name for the keys will be: R1.mycompany.local
+
+% The key modulus size is 2048 bits
+% Generating 2048 bit RSA keys, keys will be non-exportable...[OK]
+*Mar 1 0:38:37.210: %SSH-5-ENABLED: SSH 1.99 has been enabled
+R1(config)#
+```
+Из вывода видим, что используется версия SSH 1.99 ( является не криптостойкой.)
+Выполним команду `ip ssh version 2`
+
+```
+R1(config)#ip ssh version 2
+R1(config)#
+```
+
+Проверить текущую версию можно командой: `do show ip ssh`
+
+```
+R1(config)#do show ip ssh
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+R1(config)#
+```
+
+Также допускается из режима enable
+
+```
+R1#show ip ssh 
+SSH Enabled - version 2.0
+Authentication timeout: 120 secs; Authentication retries: 3
+R1#
+```
+
+
 #### Шаг 3. Создайте имя пользователя в локальной базе учетных записей.
 Настройте имя пользователя, используя admin в качестве имени пользователя и Adm1nP@55 в качестве пароля.
 #### Шаг 4. Активируйте протокол SSH на линиях VTY.
 1.	Активируйте протоколы Telnet и SSH на входящих линиях VTY с помощью команды transport input.
+
+
+
 2.	Измените способ входа в систему таким образом, чтобы использовалась проверка пользователей по локальной базе учетных записей.
 #### Шаг 5. Сохраните текущую конфигурацию в файл загрузочной конфигурации.
 #### Шаг 6. Установите соединение с маршрутизатором по протоколу SSH.
@@ -383,7 +484,10 @@ Password:
 S1#conf t
 S1(config)#interface vlan 1
 S1(config-if)#ip address 192.168.1.11 255.255.255.0
-S1(config-if)#
+S1(config-if)#exit
+S1(config)#ip default-gateway 192.168.1.1
+S1(config)#exit 
+S1#
 ```
 
 
