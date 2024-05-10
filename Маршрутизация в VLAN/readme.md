@@ -310,7 +310,9 @@ R1#
 ```
 R1#show clock 
 *2:58:15.527 UTC Mon Mar 1 1993
-R1#show clock  d
+```
+
+```
 R1#show clock  detail 
 *2:58:37.346 UTC Mon Mar 1 1993
 Time source is hardware calendar
@@ -346,12 +348,8 @@ R1#clock update-calendar
 
 ```
 Switch>
-Switch>en
 Switch>enable 
-Switch#conf t
 Switch#conf terminal 
-Enter configuration commands, one per line.  End with CNTL/Z.
-Switch(config)#hostna
 Switch(config)#hostname S1
 S1(config)#
 ```
@@ -436,7 +434,8 @@ S1(config)#
 
 **h.**	Настройте на коммутаторах время.
 
-S1#
+```
+
 S1#show clock 
 *7:55:43.442 UTC Tue Mar 2 1993
 S1#
@@ -444,11 +443,12 @@ S1#show clock detail
 *7:55:45.679 UTC Tue Mar 2 1993
 Time source is hardware calendar
 S1#
+```
 
 
 Обратите внимание, в нашем выводе, *7:55:43.442 UTC Tue Mar 2 1993 помечена звездочкой сначала. Она говорит о том, что это время не вызывает доверия. Причина этого проста – оно синхронизировано с хардварного времени, это можно проверить командой show clock detail
 
-Вывод строки : Time source is hardware calendar
+Вывод строки : `Time source is hardware calendar`
 
 В нашем случае доступа к публичным NTP нет, поэтому будем использовать ручную настройку с помощью команды `clock set` - с её помощью мы можем в привилегированном режиме (не в режиме глобальной конфигурации) модифицировать время и дату.
 
@@ -539,7 +539,6 @@ S1#
 Проверим созданные VLAN, выполнив команду `show vlan`
 
 ```
-S1#show vl
 S1#show vlan 
 
 VLAN Name                             Status    Ports
@@ -979,6 +978,7 @@ Ping до основного шлюза есть.
 **b.**	Отправьте эхо-запрос с PC-A на PC-B.
 
 Ping между PC есть.
+
 ![alt text](image-4.png)
 
 **c.**	Отправьте команду ping с компьютера PC-A на коммутатор S2.
@@ -1004,7 +1004,7 @@ Ping между PC есть.
 
 Обратимя к пункту **c.**	Проверка транкинга.
  
-И проверитм повторно : 
+И проверим повторно : 
 ```
 Switch#show interfaces trunk 
 Port        Mode         Encapsulation  Status        Native vlan
