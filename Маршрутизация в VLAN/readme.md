@@ -2,7 +2,8 @@
 
 ## Топология
  
- ![alt text](image.png)
+ 
+ ![alt text](image-10.png)
 
 ## Таблица адресации
 
