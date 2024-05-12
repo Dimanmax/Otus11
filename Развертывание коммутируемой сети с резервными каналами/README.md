@@ -365,9 +365,10 @@ ________________________________________________________________________________
 ### Часть 1:	Создание сети и настройка основных параметров устройства
 В части 1 вам предстоит настроить топологию сети и основные параметры маршрутизаторов.
 
+*!!!Все действия выполняются на одном устройстве, остальные необходимо настроить по аналогии.*
+
 #### Шаг 1:	Создайте сеть согласно топологии.
 Подключите устройства, как показано в топологии, и подсоедините необходимые кабели.
-
 
 ![alt text](image-2.png)
 
@@ -377,15 +378,59 @@ ________________________________________________________________________________
 
 **a.**	Отключите поиск DNS.
 
+`S1(config)#no ip domain-lookup`
+
 **b.**	Присвойте имена устройствам в соответствии с топологией.
+
+`S1(config)#hostname S1`
 
 **c.**	Назначьте class в качестве зашифрованного пароля доступа к привилегированному режиму.
 
+S1(config)#enable secret class
+
 **d.**	Назначьте cisco в качестве паролей консоли и VTY и активируйте вход для консоли и VTY каналов.
+
+```
+S1(config)#line console 0
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#end
+S1#
+%SYS-5-CONFIG_I: Configured from console by console
+```
+
+Дополнительно Ограничим доступ к vtu линиям с 0 по 5.
+
+```
+S1(config)#line vty  0 5
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#end
+S1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+S1#
+```
 
 **e.**	Настройте logging synchronous для консольного канала.
 
+```
+S1(config)#
+S1(config)#line console 0
+S1(config-line)#logging synchronous 
+S1(config-line)#
+```
+
 **f.**	Настройте баннерное сообщение дня (MOTD) для предупреждения пользователей о запрете несанкционированного доступа.
+
+```
+S1(config)#banner 
+S1(config)#banner motd #
+Enter TEXT message.  End with the character '#'.
+Unauthorized access is strictly prohibited.#
+
+S1(config)#
+```
 
 **g.**	Задайте IP-адрес, указанный в таблице адресации для VLAN 1 на всех коммутаторах.
 
