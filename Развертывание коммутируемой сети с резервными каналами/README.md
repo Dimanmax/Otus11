@@ -1,4 +1,5 @@
 # Лабораторная работа. Развертывание коммутируемой сети с резервными каналами
+
 ## Топология
  
  ![alt text](image.png)
@@ -6,7 +7,6 @@
 ## Таблица адресации
 
 ![alt text](image-1.png)
-
 
 
 [Перейти к Решению ](#Решение)
@@ -440,6 +440,7 @@ S1(config)#
 ```
 S1(config)#interface vlan 1
 S1(config-if)#ip address 192.168.1.1 255.255.255.0
+S1(config-if)#no shutdown 
 S1(config-if)#exit
 S1(config)#exit
 S1#
@@ -466,10 +467,46 @@ S1#
 Проверьте способность компьютеров обмениваться эхо-запросами.
 
 Успешно ли выполняется эхо-запрос от коммутатора S1 на коммутатор S2?
+
+```
+S1#ping 192.168.1.2
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.2, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/1/6 ms
+
+S1#
+```
+*Ответ: Успешно.*
 ______________
 Успешно ли выполняется эхо-запрос от коммутатора S1 на коммутатор S3?	
+
+```
+S1#ping 192.168.1.3
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.3, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+S1#
+```
+*Ответ: Успешно.*
 ______________
 Успешно ли выполняется эхо-запрос от коммутатора S2 на коммутатор S3?
+
+```
+S2#ping 192.168.1.3
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.3, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+S2#
+```
+*Ответ: Успешно.*
 ______________
 
 Выполняйте отладку до тех пор, пока ответы на все вопросы не будут положительными.
