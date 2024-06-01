@@ -61,8 +61,99 @@ ______________
 Для каждого экземпляра протокола spanning-tree (коммутируемая сеть LAN или широковещательный домен) существует коммутатор, выделенный в качестве корневого моста. Корневой мост служит точкой привязки для всех расчётов протокола spanning-tree, позволяя определить избыточные пути, которые следует заблокировать.
 Процесс выбора определяет, какой из коммутаторов станет корневым мостом. Коммутатор с наименьшим значением идентификатора моста (BID) становится корневым мостом. Идентификатор BID состоит из значения приоритета моста, расширенного идентификатора системы и MAC-адреса коммутатора. Значение приоритета может находиться в диапазоне от 0 до 65535 с шагом 4096. По умолчанию используется значение 32768.
 #### Шаг 1:	Отключите все порты на коммутаторах.
+
+Входим в CLI коммутатора S1, заходим на интерфейс с помощью команды `range` массово отключаем все fastEthernet порты командой `shutdown`.
+
+```
+S1#configure terminal 
+S1(config-if)#interface range fastEthernet 0/1-24
+S1(config-if-range)#shutdown 
+```
+
+Проверяем предыдущее действие на S1
+
+Выполним команду: `show ip interface brief`
+
+```
+S1#show ip interface brief 
+Interface              IP-Address      OK? Method Status                Protocol 
+FastEthernet0/1        unassigned      YES manual administratively down down 
+FastEthernet0/2        unassigned      YES manual administratively down down 
+FastEthernet0/3        unassigned      YES manual administratively down down 
+FastEthernet0/4        unassigned      YES manual administratively down down 
+FastEthernet0/5        unassigned      YES manual administratively down down 
+FastEthernet0/6        unassigned      YES manual administratively down down 
+FastEthernet0/7        unassigned      YES manual administratively down down 
+FastEthernet0/8        unassigned      YES manual administratively down down 
+FastEthernet0/9        unassigned      YES manual administratively down down 
+FastEthernet0/10       unassigned      YES manual administratively down down 
+FastEthernet0/11       unassigned      YES manual administratively down down 
+FastEthernet0/12       unassigned      YES manual administratively down down 
+FastEthernet0/13       unassigned      YES manual administratively down down 
+FastEthernet0/14       unassigned      YES manual administratively down down 
+FastEthernet0/15       unassigned      YES manual administratively down down 
+FastEthernet0/16       unassigned      YES manual administratively down down 
+FastEthernet0/17       unassigned      YES manual administratively down down 
+FastEthernet0/18       unassigned      YES manual administratively down down 
+FastEthernet0/19       unassigned      YES manual administratively down down 
+FastEthernet0/20       unassigned      YES manual administratively down down 
+FastEthernet0/21       unassigned      YES manual administratively down down 
+FastEthernet0/22       unassigned      YES manual administratively down down 
+FastEthernet0/23       unassigned      YES manual administratively down down 
+FastEthernet0/24       unassigned      YES manual administratively down down 
+GigabitEthernet0/1     unassigned      YES manual down                  down 
+GigabitEthernet0/2     unassigned      YES manual down                  down 
+Vlan1                  192.168.1.1     YES manual up                    down
+```
+
+Убеждаемся, что все fastEthernet порты переведены в режим down, гигабитные порты видим, что также выключены.
+
+Аналогичные действия выполняем на S2 и S3.
+
 #### Шаг 2:	Настройте подключенные порты в качестве транковых.
+
+Первым делом необходимо отключить автосогласование через протокол DTP switchport nonegotiate для повышения ИБ.
+Отключаем на всех коммутаторах выполнив команду на всех trunk магистральных портах `switchport nonegotiate` 
+
+Настройка выполнена на одном коммутаторе S2 (в данном примере коммутатор S2 является root-коммутатором, поэтому настройка начата с него.)
+```
+S2(config)#interface fastEthernet 0/1
+S2(config-if)#switchport nonegotiate 
+```
+
+Настроим fastEthernet 0/1
+```
+S2(config)#interface fastEthernet 0/1
+S2(config-if)#switchport mode trunk
+S2(config-if)#switchport trunk allowed vlan 1
+
+```
+
+Настроим fastEthernet 0/2
+```
+S2(config)#interface fastEthernet 0/2
+S2(config-if)#switchport mode trunk 
+S2(config-if)#switchport trunk allowed vlan 1
+```
+Настроим по аналогии fastEthernet 0/3
+Настроим по аналогии fastEthernet 0/4
+
+
+Далее выполним аналогичную настройку trunk портов на S1 с портами f0/1 и f0/2, f0/3, f0/4.
+
+Далее выполним аналогичную настройку trunk портов  на S3 с портами f0/1 и f0/2, f0/3, f0/4.
+
+
+
+
 #### Шаг 3:	Включите порты F0/2 и F0/4 на всех коммутаторах.
+
+```
+S2(config)#interface fastEthernet 0/2
+S2(config)#no shutdown
+```
+По аналогии также включаем остальное.
+
 #### Шаг 4:	Отобразите данные протокола spanning-tree.
 Введите команду `show spanning-tree` на всех трех коммутаторах. Приоритет идентификатора моста рассчитывается путем сложения значений приоритета и расширенного идентификатора системы. Расширенным идентификатором системы всегда является номер сети VLAN. 
 В примере ниже все три коммутатора имеют равные значения приоритета идентификатора моста (32769 = 32768 + 1, где приоритет по умолчанию = 32768, номер сети VLAN = 1); следовательно, коммутатор с самым низким значением MAC-адреса становится корневым мостом (в примере — S2).
@@ -139,12 +230,17 @@ Fa0/4               Desg FWD 19        128.4    P2p
 
 Какой коммутатор является корневым мостом?
 
+**Ответ:**
+
+*S2*
 _____________
 
 
 Почему этот коммутатор был выбран протоколом spanning-tree в качестве корневого моста?
 
-_______________________________________________________________________________________
+**Ответ:**
+
+*Т.к S2 является с самым низким значением MAC-адреса, поэтому он становится корневым мостом.*
 _______________________________________________________________________________________
 
 Какие порты на коммутаторе являются корневыми портами?
