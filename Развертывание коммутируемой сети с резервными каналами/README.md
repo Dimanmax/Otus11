@@ -364,69 +364,74 @@ S2(config)#no shutdown
 Введите команду `show spanning-tree` на всех трех коммутаторах. Приоритет идентификатора моста рассчитывается путем сложения значений приоритета и расширенного идентификатора системы. Расширенным идентификатором системы всегда является номер сети VLAN. 
 В примере ниже все три коммутатора имеют равные значения приоритета идентификатора моста (32769 = 32768 + 1, где приоритет по умолчанию = 32768, номер сети VLAN = 1); следовательно, коммутатор с самым низким значением MAC-адреса становится корневым мостом (в примере — S2).
 
+
+Установил режим pvst командой `spanning tree mode rapid-pvst` на всех коммутаторах.
 ```
 S1# show spanning-tree
 
+S1#show spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
-             Address     0cd9.96d2.4000
-             Cost        19
-             Port        2 (FastEthernet0/2)
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0cd9.96e8.8a00
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  300 sec
-
-Interface           Role Sts Cost      Prio.Nbr Type
-------------------- ---- --- --------- -------- --------------------------------
-Fa0/2               Root FWD 19        128.2    P2p 
-Fa0/4               Altn BLK 19        128.4    P2p
-```
-
-```
-S2# show spanning-tree
-
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0cd9.96d2.4000
+             Address     000D.BDDA.BBA4
              This bridge is the root
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
 
   Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0cd9.96d2.4000
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  300 sec
+             Address     000D.BDDA.BBA4
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
 
-Interface           Role Sts Cost      Prio.Nbr Type
-------------------- ---- --- --------- -------- --------------------------------
-Fa0/2               Desg FWD 19        128.2    P2p 
-Fa0/4               Desg FWD 19        128.4    P2p
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/4            Desg FWD 19        128.4    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+
 ```
 
 ```
-S3# show spanning-tree
-
+S2#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
-             Address     0cd9.96d2.4000
+             Address     000D.BDDA.BBA4
              Cost        19
-             Port        2 (FastEthernet0/2)
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Port        2(FastEthernet0/2)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
 
   Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0cd9.96e8.7400
-             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  300 sec
+             Address     0060.5C45.3EBE
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
 
-Interface           Role Sts Cost      Prio.Nbr Type
-------------------- ---- --- --------- -------- --------------------------------
-Fa0/2               Root FWD 19        128.2    P2p 
-Fa0/4               Desg FWD 19        128.4    P2p
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Root LSN 19        128.2    P2p
+Fa0/4            Desg FWD 19        128.4    P2p
+
+```
+
+```
+S3#sh spanning-tree 
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     000D.BDDA.BBA4
+             Cost        19
+             Port        4(FastEthernet0/4)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     00D0.D3E0.DC4B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/4            Root FWD 19        128.4    P2p
+
+S3#
 ```
 
 Примечание. Режим STP по умолчанию на коммутаторе 2960 — протокол STP для каждой сети VLAN (PVST).
@@ -438,7 +443,7 @@ Fa0/4               Desg FWD 19        128.4    P2p
 
 **Ответ:**
 
-*S1*
+*S1, в выводе: `This bridge is the root`*
 _____________
 
 
@@ -485,9 +490,9 @@ _________________________________________________________
 При текущей конфигурации только один коммутатор может содержать заблокированный протоколом STP порт. Выполните команду `show spanning-tree` на обоих коммутаторах некорневого моста. В примере ниже протокол spanning-tree блокирует порт F0/2 на коммутаторе с самым высоким идентификатором BID (S3).
 
 ```
-S2#show spanning-tree 
+S2#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -501,15 +506,16 @@ VLAN0001
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/2            Root FWD 19        128.2    P2p
+Fa0/2            Root LSN 19        128.2    P2p
 Fa0/4            Desg FWD 19        128.4    P2p
+
 ```
 
 
 ```
 S3#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -526,6 +532,7 @@ Interface        Role Sts Cost      Prio.Nbr Type
 Fa0/2            Altn BLK 19        128.2    P2p
 Fa0/4            Root FWD 19        128.4    P2p
 
+
 ```
 
 
@@ -535,7 +542,7 @@ Fa0/4            Root FWD 19        128.4    P2p
 Помимо заблокированного порта, единственным активным портом на этом коммутаторе является порт, выделенный в качестве порта корневого моста. Уменьшите стоимость этого порта корневого моста до 18, выполнив команду `spanning-tree vlan 1 cost 18` режима конфигурации интерфейса.
 
 ```
-S3(config)# interface f0/2
+S3(config)# interface f0/4
 S3(config-if)# spanning-tree vlan 1 cost 18
 ```
 
@@ -543,9 +550,9 @@ S3(config-if)# spanning-tree vlan 1 cost 18
 Повторно выполните команду `show spanning-tree` на обоих коммутаторах некорневого моста. Обратите внимание, что ранее заблокированный порт (S3 – F0/2) теперь является назначенным портом, и протокол spanning-tree теперь блокирует порт на другом коммутаторе некорневого моста (S2 – F0/4).
 
 ```
-S3#show spanning-tree 
+S3#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        18
@@ -564,9 +571,10 @@ Fa0/4            Root FWD 18        128.4    P2p
 ```
 
 ```
-S2#show spanning-tree 
+
+S2#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -599,10 +607,11 @@ S3(config-if)# no spanning-tree vlan 1 cost 18
 **b.**	Повторно выполните команду `show spanning-tree`, чтобы подтвердить, что протокол STP сбросил порт на коммутаторе некорневого моста, вернув исходные настройки порта. Протоколу STP требуется примерно 30 секунд, чтобы завершить процесс перевода порта.
 
 После отмены изменений, стоимость порта стала дефолтной и равна 19.
+
 ```
-S3#show spanning-tree 
+S3#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -616,15 +625,15 @@ VLAN0001
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/2            Desg BLK 19        128.2    P2p
 Fa0/4            Root FWD 19        128.4    P2p
 ```
 
 Спустя 30 секунд, проверим состояние портов:
 ```
-S3#show spanning-tree 
+S3#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -664,9 +673,9 @@ S1(config-if)#no shutdown
 **b.**	Подождите 30 секунд, чтобы протокол STP завершил процесс перевода порта, после чего выполните команду `show spanning-tree` на коммутаторах некорневого моста. Обратите внимание, что порт корневого моста переместился на порт с меньшим номером, связанный с коммутатором корневого моста, и заблокировал предыдущий порт корневого моста.
 
 ```
-S1#show spanning-tree 
+S1#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              This bridge is the root
@@ -679,16 +688,16 @@ VLAN0001
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
+Fa0/4            Desg FWD 19        128.4    P2p
 Fa0/1            Desg FWD 19        128.1    P2p
 Fa0/2            Desg FWD 19        128.2    P2p
-Fa0/4            Desg FWD 19        128.4    P2p
 Fa0/3            Desg FWD 19        128.3    P2p
 ```
 
 ```
-S2#show spanning-tree 
+S2>sh sp
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -702,16 +711,16 @@ VLAN0001
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/3            Desg FWD 19        128.3    P2p
-Fa0/1            Root FWD 19        128.1    P2p
 Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/3            Desg FWD 19        128.3    P2p
 Fa0/4            Desg FWD 19        128.4    P2p
 ```
 
 ```
-S3#show spanning-tree 
+S3#sh spanning-tree 
 VLAN0001
-  Spanning tree enabled protocol ieee
+  Spanning tree enabled protocol rstp
   Root ID    Priority    32769
              Address     000D.BDDA.BBA4
              Cost        19
@@ -726,8 +735,8 @@ VLAN0001
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
 Fa0/2            Altn BLK 19        128.2    P2p
-Fa0/1            Altn BLK 19        128.1    P2p
 Fa0/3            Root FWD 19        128.3    P2p
+Fa0/1            Altn BLK 19        128.1    P2p
 Fa0/4            Altn BLK 19        128.4    P2p
 ```
 
