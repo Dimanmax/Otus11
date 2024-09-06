@@ -8,8 +8,18 @@
 
 ![alt text](image-1.png)
 
+
+## Таблица VLAN
+![alt text](image-2.png)
 [Перейти к Решению ](#Решение)
 
+## Задачи
+
+### Часть 1. Создание сети и настройка основных параметров устройства
+
+### Часть 2. Настройка и проверка двух серверов DHCPv4 на R1
+
+### Часть 3. Настройка и проверка DHCP-ретрансляции на R2
 
 ## Цели
 ### Часть 1. Создание сети и настройка основных параметров устройства
@@ -226,7 +236,52 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 # РЕШЕНИЕ
 
 ## Цели
-### Часть 1. 
+### Часть 1. Создание сети и настройка основных параметров устройства
+
+
+#### Шаг 1 Cоздание схемы адресации
+![alt text](image-3.png)
+
+#### Шаг 2. Создаем сеть согласно топологии в СPT:
+
+Общий вид тополигии:
+![alt text](image-4.png)
+
+
+#### Шаг 3.	Произведите базовую настройку маршрутизаторов.
+
+Выполним базовую настройку маршрутизаторов.
+
+ Настройка R1:
+
+ ```
+Router>enable 
+Router#conf terminal 
+Router(config)#hostname R1
+R1(config)#no ip domain-lookup 
+R1(config)#enable secret class
+R1(config)#line console 0
+R1(config-line)#password cisco
+R1(config-line)#login
+R1(config-line)#line vty 0 15
+R1(config-line)#password cisco
+R1(config-line)#exit
+R1(config)#service password-encryption 
+R1(config)#banner motd #
+Enter TEXT message.  End with the character '#'.
+Unauthorized access is strictly prohibited. #
+R1(config)#exit 
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R1#write 
+Building configuration...
+[OK]
+R1#
+R1#clock  set 00:38:00 07 sep 2024
+ ```
+
+
 ### Часть 2. 
 ### Часть 3. 
 ### Часть 4. 
@@ -235,28 +290,3 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 ### Часть 1:	
 
 *!!!Все действия выполняются на одном устройстве, остальные необходимо настроить по аналогии.*
-
-#### Шаг 1:	
-
-#### Шаг 2:	
-#### Шаг 3:	
-**a.**	
-
-**b.**
-
-
-**c.**	
-
-
-**d.**	
-```
-
-```
-
-
-
-```
-
-```
-
-**e.**	
