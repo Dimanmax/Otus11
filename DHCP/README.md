@@ -1,5 +1,4 @@
-# Лабораторная работа. 
-### Реализация DHCPv4
+# Лабораторная работа. Реализация DHCPv4 
 
 ## Топология
 ![alt text](image.png)
@@ -252,7 +251,7 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 
 Выполним базовую настройку маршрутизаторов.
 
- Настройка R1:
+ Настройка R0 переименуем его в R1 согласно указанному имени в топологии:
 
  ```
 Router>enable 
@@ -274,13 +273,48 @@ R1(config)#exit
 R1#
 %SYS-5-CONFIG_I: Configured from console by console
 
+R1#
+R1#clock  set 00:38:00 07 sep 2024
 R1#write 
 Building configuration...
 [OK]
-R1#
-R1#clock  set 00:38:00 07 sep 2024
  ```
 
+Аналогичным образом настраиваем R1, меняем ему имя на R2 согласно схемы:
+
+
+```
+Router>enable 
+Router#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#hostname R2
+R2(config)#ip domain-lookup 
+R2(config)#enable secret class
+R2(config)#line console 0
+R2(config-line)#password cisco
+R2(config-line)#login 
+R2(config-line)#end
+R2(config-line)#line vty 0 15
+R2(config-line)#exit 
+R2(config)#service password-encryption 
+R2(config)#exit
+R2(config)#banner motd #
+Enter TEXT message.  End with the character '#'.
+Unauthorized access is strictly prohibited. #
+
+
+R2(config)#exit 
+R2#
+R2#clock set 00:55:00 07 sep 2024
+R2#write 
+Building configuration...
+[OK]
+R2#
+```
+
+#### Шаг 4. Настройка маршрутизации между сетями VLAN на маршрутизаторе R1
+
+Активируем интерфейс G0/0/1 на маршрутизаторе:
 
 ### Часть 2. 
 ### Часть 3. 
