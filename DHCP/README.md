@@ -316,6 +316,258 @@ R2#
 
 Активируем интерфейс G0/0/1 на маршрутизаторе:
 
+```
+
+
+Unauthorized access is strictly prohibited. 
+
+User Access Verification
+Password: 
+
+R1>en
+Password: 
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#int
+R1(config)#interface gi
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#no sh
+R1(config-if)#no shutdown 
+
+R1(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+```
+Настроим подинтерфейсы (100,200,Native) для каждого VLAN в исходя из таблицы-адресации.
+Каждый субинтерфейс имеет  инкапсуляцию 802.1Q и назначаются первый полезный адрес из вычисленного пула IP-адресов, добавим дексриптор для каждого подинтерфейса.
+
+```
+R1#
+R1#
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#interface gigabitEthernet 0/0/1.100
+R1(config-subif)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1.100, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1.100, changed state to up
+desc
+R1(config-subif)#description Clients
+R1(config-subif)#encapsulation dot1Q 100
+% Incomplete command.
+R1(config-subif)#ip address 192.168.1.1 255.255.255.192
+
+% Configuring IP routing on a LAN subinterface is only allowed if that
+subinterface is already configured as part of an IEEE 802.10, IEEE 802.1Q,
+or ISL vLAN.
+
+R1(config-subif)#
+R1(config-subif)# exit
+
+	
+R1#
+R1#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#interface gigabitEthernet 0/0/1.200
+R1(config-subif)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1.200, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1.200, changed state to up en
+R1(config-subif)#encapsulation dot1Q 200
+R1(config-subif)#description Control
+R1(config-subif)#ip address 192.168.1.65 255.255.255.224
+R1(config-subif)#exit 
+R1(config)#interface gigabitEthernet 0/0/1.1000
+R1(config-subif)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1.1000, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1.1000, changed state to up
+enc
+R1(config-subif)#encapsulation dot1Q 1000 native
+R1(config-subif)#description Native VLAN
+R1(config-subif)#exit 
+R1(config)#exit 
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R1#
+```
+Командой `show ip interface brief` проверим, что всё работает верно.
+
+```
+R1#
+R1#show ip interface brief 
+Interface              IP-Address      OK? Method Status                Protocol 
+GigabitEthernet0/0/0   unassigned      YES unset  administratively down down 
+GigabitEthernet0/0/1   unassigned      YES unset  up                    up 
+GigabitEthernet0/0/1.100192.168.1.1     YES manual up                    up 
+GigabitEthernet0/0/1.200192.168.1.65    YES manual up                    up 
+GigabitEthernet0/0/1.1000unassigned      YES unset  up                    up 
+GigabitEthernet0/0/2   unassigned      YES unset  administratively down down 
+Vlan1                  unassigned      YES unset  administratively down down
+R1#
+```
+
+
+#### Шаг 5. Настраиваем G0/1 на R2, затем G0/0/0 и статическую маршрутизацию для обоих маршрутизаторов
+
+Настраиваем G0/0/1 на R2 с первым IP-адресом подсети C, рассчитанный ранее
+
+```
+
+
+R2>
+R2>en
+Password: 
+R2#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#
+R2(config)#interface gigabitEthernet 0/0/1
+R2(config-if)#ip address 192.168.1.97 255.255.255.240
+R2(config-if)#no shutdown 
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+```
+
+
+Hастроим интерфейс G0/0/0  для каждого маршрутизатора на основе приведенной выше таблицы IP-адресации:
+
+
+На R1:
+```
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#interface gigabitEthernet 0/0/0
+R1(config-if)#ip address 10.0.0.1 255.255.255.252
+R1(config-if)#no shutdown 
+
+R1(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up
+
+R1(config-if)#
+R1(config-if)#exit 
+R1(config)#exit 
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+wr
+R1#write 
+Building configuration...
+[OK]
+R1#
+```
+
+На R2:
+
+```
+R2#
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#interface gigabitEthernet 0/0/0 
+R2(config-if)#ip address 10.0.0.2 255.255.255.252
+R2(config-if)#no sh
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
+
+R2(config-if)#
+R2(config-if)#ex
+R2(config-if)#exit 
+R2(config)#ex
+R2(config)#exit 
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R2#
+```
+
+Настроим маршрут по умолчанию на каждом маршрутизаторе, указываемый на IP-адрес G0/0/0 на другом маршрутизаторе
+
+```
+R1>en
+Password: 
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#ip route 0.0.0.0 0.0.0.0 10.0.0.2
+R1(config)#
+```
+
+```
+R2>
+R2>en
+Password: 
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#ip route 0.0.0.0 0.0.0.0 10.0.0.1
+R2(config)#
+```
+
+Командой `ping` можно проверить, что  статическая маршрутизация работает верно  до адреса G0/0/1 R2 от R1 и наоборот.
+
+```
+R1#ping 192.168.1.97
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.97, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+R1#
+```
+
+```
+R2#
+R2#ping 192.168.1.65
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.65, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R2#
+```
+Как видим пинги в обе стороны проходят.
+
+На обоих маршрутизатораз командой `copy running-config startup-config` сохраним текущую конфигурацию в файл автозагрузки.
+
+
+#### Шаг 6. Настраиваем базовые параметры каждого коммутатора
+
+Выполним первичную настройку Switch'ей.
+
+```
+Switch>
+Switch>en
+Switch#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Switch(config)#hostname S1
+S1(config)#ip domain-lookup 
+S1(config)#line console 0
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#line vty 0 15
+S1(config-line)#exit 
+S1(config)#service  password-encryption 
+S1(config)#banner motd #
+Enter TEXT message.  End with the character '#'.
+Do No Enter#
+
+S1(config)#wr
+S1(config)#exit 
+S1#
+%SYS-5-CONFIG_I: Configured from console by console
+wr
+S1#write 
+Building configuration...
+[OK]
+S1#
+```
 ### Часть 2. 
 ### Часть 3. 
 ### Часть 4. 
