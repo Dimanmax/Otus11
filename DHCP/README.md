@@ -539,7 +539,7 @@ R2#
 
 #### Шаг 6. Настраиваем базовые параметры каждого коммутатора
 
-Выполним первичную настройку Switch'ей.
+Выполним первичную настройку обоих Switch'ей.
 
 ```
 Switch>
@@ -568,11 +568,289 @@ Building configuration...
 [OK]
 S1#
 ```
-### Часть 2. 
-### Часть 3. 
-### Часть 4. 
 
-## Инструкции
-### Часть 1:	
+```
+Switch>
+Switch>en
+Switch#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Switch(config)#hostname S2
+S2(config)#no ip domain-lookup 
+S2(config)#enable  secret class
+S2(config)#line console 0
+S2(config-line)#password cisco
+S2(config-line)#login
+S2(config-line)#line vty 0 15
+S2(config-line)#password cisco
+S2(config-line)#login
+S2(config-line)#exit 
+S2(config)#service password-encryption 
+S2(config)#banner motd #
+Enter TEXT message.  End with the character '#'.
+Do No Enter#
 
-*!!!Все действия выполняются на одном устройстве, остальные необходимо настроить по аналогии.*
+S2(config)#exit 
+S2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+S2#
+S2#copy running-config startup-config
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+S2#
+```
+#### Шаг 7. Создаем сети VLAN на коммутаторе S1
+
+**a.** Создаем необходимые VLAN на коммутаторе S1 и присвойте им имена из приведенной выше таблицы:
+
+```
+S1#
+S1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#vlan 100
+S1(config-vlan)#name Clients
+S1(config-vlan)#vlan 200
+S1(config-vlan)#name Control
+S1(config-vlan)#vlan 999
+S1(config-vlan)#name Parking_lot
+S1(config-vlan)#vlan 1000
+S1(config-vlan)#name Native
+S1(config-vlan)#
+```
+
+**b.** Настраиваем и активируем интерфейс управления на S1 (VLAN 200), используя второй IP-адрес из подсети, рассчитанный ранее. Устанавливаем шлюз по умолчанию на S1
+
+```
+S1(config)#
+S1(config)#interface vlan 200
+S1(config-if)#
+%LINK-5-CHANGED: Interface Vlan200, changed state to up
+
+S1(config-if)#ip address 192.168.1.66 255.255.255.224
+S1(config-if)#no shutdown 
+S1(config-if)#exit 
+S1(config)#ip default-gateway 192.168.1.65
+S1(config)#
+```
+
+**c.** Настраиваем и активируем интерфейс управления на S2 (VLAN 1), используя второй IP-адрес из подсети, рассчитанный ранее. Устанавливаем шлюз по умолчанию на S2
+
+```
+S2#
+S2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S2(config)#interface vlan 1
+S2(config-if)#ip address 192.168.1.98 255.255.255.240
+S2(config-if)#no shutdown 
+
+S2(config-if)#
+%LINK-5-CHANGED: Interface Vlan1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan1, changed state to up
+
+S2(config-if)#exit 
+S2(config)#ip default-gateway 192.168.1.97
+S2(config)#
+```
+
+**d.** Назначаем все неиспользуемые порты S1 VLAN Parking_Lot, настраиваем их для статического режима доступа и административно деактивируйте их. На S2 административно деактивируйте все неиспользуемые порты
+Для удобства с несколькими портами воспользуемся командой `interface range`
+
+```
+S1(config)#
+S1(config)#interface range f0/1 - 4, f0/7 - 24, g0/1 -2
+S1(config-if-range)#switchport mode access 
+S1(config-if-range)#switchport access vlan 999
+S1(config-if-range)#shutdown 
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/2, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/3, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/4, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/7, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/8, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/9, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/11, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/12, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/13, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/14, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/15, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/16, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/17, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/18, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/19, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/20, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/21, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/22, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/23, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/24, changed state to administratively down
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to administratively down
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/2, changed state to administratively down
+S1(config-if-range)#
+S1(config-if-range)#exit
+```
+
+Проверим, что получилось:
+```
+S1#
+S1#show vlan 
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/5, Fa0/6
+100  Clients                          active    
+200  Control                          active    
+999  Parking_lot                      active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/10
+                                                Fa0/11, Fa0/12, Fa0/13, Fa0/14
+                                                Fa0/15, Fa0/16, Fa0/17, Fa0/18
+                                                Fa0/19, Fa0/20, Fa0/21, Fa0/22
+                                                Fa0/23, Fa0/24, Gig0/1, Gig0/2
+1000 Native                           active    
+1002 fddi-default                     active    
+1003 token-ring-default               active    
+1004 fddinet-default                  active    
+1005 trnet-default                    active    
+
+
+S1#show ip  interface brief 
+Interface              IP-Address      OK? Method Status                Protocol 
+FastEthernet0/1        unassigned      YES manual administratively down down 
+FastEthernet0/2        unassigned      YES manual administratively down down 
+FastEthernet0/3        unassigned      YES manual administratively down down 
+FastEthernet0/4        unassigned      YES manual administratively down down 
+FastEthernet0/5        unassigned      YES manual up                    up 
+FastEthernet0/6        unassigned      YES manual up                    up 
+FastEthernet0/7        unassigned      YES manual administratively down down 
+FastEthernet0/8        unassigned      YES manual administratively down down 
+FastEthernet0/9        unassigned      YES manual administratively down down 
+FastEthernet0/10       unassigned      YES manual administratively down down 
+FastEthernet0/11       unassigned      YES manual administratively down down 
+FastEthernet0/12       unassigned      YES manual administratively down down 
+FastEthernet0/13       unassigned      YES manual administratively down down 
+FastEthernet0/14       unassigned      YES manual administratively down down 
+FastEthernet0/15       unassigned      YES manual administratively down down 
+FastEthernet0/16       unassigned      YES manual administratively down down 
+FastEthernet0/17       unassigned      YES manual administratively down down 
+FastEthernet0/18       unassigned      YES manual administratively down down 
+FastEthernet0/19       unassigned      YES manual administratively down down 
+FastEthernet0/20       unassigned      YES manual administratively down down 
+FastEthernet0/21       unassigned      YES manual administratively down down 
+```
+Из вывода команд `show ip  interface brief ` и ` show vlan` видим, что все в порядке.
+
+```
+S2>en
+Password: 
+S2#
+S2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S2(config)#interface range f0/1 -4, f0/6 -17, f0/19 -24, g0/1 -2
+S2(config-if-range)#switchport mode access 
+S2(config-if-range)#shutdown 
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/2, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/3, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/4, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/6, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/7, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/8, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/9, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/11, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/12, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/13, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/14, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/15, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/16, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/17, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/19, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/20, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/21, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/22, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/23, changed state to administratively down
+
+%LINK-5-CHANGED: Interface FastEthernet0/24, changed state to administratively down
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to administratively down
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/2, changed state to administratively down
+S2(config-if-range)#exit 
+S2(config)#exit 
+S2#
+%SYS-5-CONFIG_I: Configured from console by console
+```
+
+Проверим:
+```
+S2#show ip  interface  brief 
+Interface              IP-Address      OK? Method Status                Protocol 
+FastEthernet0/1        unassigned      YES manual administratively down down 
+FastEthernet0/2        unassigned      YES manual administratively down down 
+FastEthernet0/3        unassigned      YES manual administratively down down 
+FastEthernet0/4        unassigned      YES manual administratively down down 
+FastEthernet0/5        unassigned      YES manual up                    up 
+FastEthernet0/6        unassigned      YES manual administratively down down 
+FastEthernet0/7        unassigned      YES manual administratively down down 
+FastEthernet0/8        unassigned      YES manual administratively down down 
+FastEthernet0/9        unassigned      YES manual administratively down down 
+FastEthernet0/10       unassigned      YES manual administratively down down 
+FastEthernet0/11       unassigned      YES manual administratively down down 
+FastEthernet0/12       unassigned      YES manual administratively down down 
+FastEthernet0/13       unassigned      YES manual administratively down down 
+FastEthernet0/14       unassigned      YES manual administratively down down 
+FastEthernet0/15       unassigned      YES manual administratively down down 
+FastEthernet0/16       unassigned      YES manual administratively down down 
+FastEthernet0/17       unassigned      YES manual administratively down down 
+FastEthernet0/18       unassigned      YES manual up                    up 
+FastEthernet0/19       unassigned      YES manual administratively down down 
+FastEthernet0/20       unassigned      YES manual administratively down down 
+FastEthernet0/21       unassigned      YES manual administratively down down 
+```
+Всё нормально, порты в статусе down.
