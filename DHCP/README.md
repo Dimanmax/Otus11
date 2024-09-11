@@ -1187,7 +1187,7 @@ IP address       Client-ID/              Lease expiration        Type
 R1#
 ```
 
-В окончательном виде топология выглядит так;
+В окончательном виде топология выглядит так:
 ![alt text](image-5.png)
 
 
