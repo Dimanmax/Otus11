@@ -854,3 +854,342 @@ FastEthernet0/20       unassigned      YES manual administratively down down
 FastEthernet0/21       unassigned      YES manual administratively down down 
 ```
 Всё нормально, порты в статусе down.
+ Как видим, что все неиспользуемые порты во VLAN 999 Parking_lot.
+
+ #### Шаг 8. Назначаем сети VLAN соответствующим интерфейсам коммутатора.
+
+ **a.** Назначаем используемые порты соответствующей VLAN (указанной в таблице VLAN выше) и настраиваем их для режима статического доступа
+
+```
+S1#
+S1#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#
+S1(config)#interface fastEthernet 0/6
+S1(config-if)#switchport mode access 
+S1(config-if)#switchport access vlan 100
+S1(config-if)#
+```
+
+**b.**  Убеждаемся, что VLAN назначены на правильные интерфейсы.
+
+```
+
+S1#
+S1#show vlan brief 
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/5
+100  Clients                          active    Fa0/6
+200  Control                          active    
+999  Parking_lot                      active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/10
+                                                Fa0/11, Fa0/12, Fa0/13, Fa0/14
+                                                Fa0/15, Fa0/16, Fa0/17, Fa0/18
+                                                Fa0/19, Fa0/20, Fa0/21, Fa0/22
+                                                Fa0/23, Fa0/24, Gig0/1, Gig0/2
+1000 Native                           active    
+1002 fddi-default                     active    
+1003 token-ring-default               active    
+1004 fddinet-default                  active    
+1005 trnet-default                    active    
+S1#
+
+```
+
+Интерфейс F0/5 находиться в VLAN 1 потому, что это VLAN по умолчанию а сам интерфейс не был настроен, настроим его.
+
+#### Шаг 9. Вручную настраиваем интерфейс S1 F0/5 в качестве транка 802.1Q
+
+**a.** Изменяем режим порта коммутатора, чтобы принудительно создать магистральный канал
+
+```
+S1#
+S1#int
+S1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#int 
+S1(config)#int f
+S1(config)#inte
+S1(config)#interface f
+S1(config)#interface fastEthernet 0/5
+S1(config-if)#swi
+S1(config-if)#switchport m
+S1(config-if)#switchport mode tr
+S1(config-if)#switchport mode trunk 
+
+S1(config-if)#
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/5, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/5, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan200, changed state to up
+
+S1(config-if)#
+S1(config-if)#sh
+S1(config-if)#no sh
+S1(config-if)#no shutdown 
+S1(config-if)#swi
+S1(config-if)#switchport tru
+S1(config-if)#switchport trunk n
+S1(config-if)#switchport trunk native vl
+S1(config-if)#switchport trunk native vlan 1000
+S1(config-if)#sw
+S1(config-if)#switchport tru
+S1(config-if)#switchport trunk all
+S1(config-if)#switchport trunk allowed v
+S1(config-if)#switchport trunk allowed vlan 100,200,1000
+S1(config-if)#exi
+S1(config-if)#exit 
+S1(config)#cop
+S1(config)#exi
+S1(config)#exit 
+```
+
+Проверим настройки транка:
+```
+S1#
+S1#show interfaces trunk 
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/5       on           802.1q         trunking      1000
+
+Port        Vlans allowed on trunk
+Fa0/5       100,200,1000
+
+Port        Vlans allowed and active in management domain
+Fa0/5       100,200,1000
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/5       100,200,1000
+
+S1#
+
+```
+
+Если бы ПК не был подключен к сети с помощью DHCP, он бы автоматически получил  IP в диапозоне 169.254.x.x (дефолтный диапазон адрессов)
+
+### Часть 2. Настройка и проверка двух серверов DHCPv4 на R1
+
+#### Шаг 1. Настраиваем R1 с пулами DHCPv4 для двух поддерживаемых подсетей
+**a.** Исключаем первые пять используемых адресов из каждого пула адресов
+```
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.5
+R1(config)#
+```
+
+**b.** Создаем пул DHCP
+
+```
+R1(config)#
+R1(config)#ip dh
+R1(config)#ip dhcp poo
+R1(config)#ip dhcp pool R1_Clients
+R1(dhcp-config)#
+```
+
+**c.** Указываем сеть, поддерживающую этот DHCP-сервер
+
+```
+R1(dhcp-config)#network 192.168.1.0 255.255.255.192
+```
+
+**d.** В качестве имени домена указываем CCNA-lab.com
+
+```
+R1(dhcp-config)#domain-name ccna-lab.com
+```
+
+
+**e.** Настраиваем соответствующий шлюз по умолчанию для каждого пула DHCP
+```
+R1(dhcp-config)#default-router 192.168.1.1
+```
+**f.** Настраиваем время аренды на 2 дня 12 часов и 30 минут
+
+```
+R1(dhcp-config)#lease 2 12 30
+                ^
+% Invalid input detected at '^' marker.
+	
+R1(dhcp-config)#lea
+```
+Команда не отрабатывает, уточнить.
+
+**g.** Затем настраиваем второй пул DHCPv4, используя имя пула R2_Client_LAN и вычисляем сеть, маршрутизатор по умолчанию, и используем то же имя домена и время аренды, что и предыдущий пул DHCP.
+
+```
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#ip dhcp excluded-address 192.168.1.97 192.168.1.101
+R1(config)#ip dhcp pool R2_Clients
+R1(dhcp-config)#network 192.168.1.96 255.255.255.240
+R1(dhcp-config)#default-router 192.168.1.97
+R1(dhcp-config)#domain-name ccna-lab.com
+```
+
+команда lease не отрабатывает.
+
+#### Шаг 2. Сохраняем конфигурацию
+
+Сохраняем текущую конфигурацию в файл загрузочной конфигурации
+
+#### Шаг 3. Попытка получить IP-адрес от DHCP на PC-A
+
+a. Из командной строки компьютера PC-A выполняем команду ipconfig /all
+
+b. После завершения процесса обновления выполняем команду ipconfig для просмотра новой информации об IP-адресе
+
+```
+C:\>
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: ccna-lab.com
+   Physical Address................: 0090.21D4.5B5D
+   Link-local IPv6 Address.........: FE80::290:21FF:FED4:5B5D
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.6
+   Subnet Mask.....................: 255.255.255.192
+   Default Gateway.................: ::
+                                     192.168.1.1
+   DHCP Servers....................: 192.168.1.1
+   DHCPv6 IAID.....................: 
+   DHCPv6 Client DUID..............: 00-01-00-01-11-2D-5A-7E-00-90-21-D4-5B-5D
+   DNS Servers.....................: ::
+                                     0.0.0.0
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: ccna-lab.com
+   Physical Address................: 000A.4137.AB11
+   Link-local IPv6 Address.........: ::
+
+   ```
+
+
+c. Проверяем подключение с помощью пинга IP-адреса интерфейса R0 G0/0/1
+
+```
+C:\>
+C:\>ping 192.168.1.1
+
+Pinging 192.168.1.1 with 32 bytes of data:
+
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.1: bytes=32 time=13ms TTL=255
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 192.168.1.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 13ms, Average = 3ms
+
+C:\>
+```
+
+### Часть 3. Настройка и проверка DHCP-ретрансляции на R2
+#### Шаг 1. Настройка R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1
+
+a. Настраиваем команду ip helper-address на G0/0/1, указав IP-адрес G0/0/0 R1
+
+b. Сохраняем конфигурацию
+
+```
+R2>en
+Password: 
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#interface gigabitEthernet 0/0/1
+R2(config-if)#ip helper-address 10.0.0.1
+R2(config-if)#exit 
+R2(config)#exit 
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+wr
+R2#write 
+Building configuration...
+[OK]
+R2#
+```
+
+
+#### Шаг 2. Попытка получить IP-адрес от DHCP на PC-B
+
+a. Из командной строки компьютера PC-B выполняем команду ipconfig /all
+
+b. После завершения процесса обновления выполняем команду ipconfig для просмотра новой информации об IP-адресе
+
+```
+C:\>
+C:\>
+C:\>ipconfig
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: ccna-lab.com
+   Link-local IPv6 Address.........: FE80::2D0:D3FF:FE9E:B8BD
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.102
+   Subnet Mask.....................: 255.255.255.240
+   Default Gateway.................: ::
+                                     192.168.1.97
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: ccna-lab.com
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+
+C:\>
+```
+c. Проверяем подключение с помощью пинга IP-адреса интерфейса R1 G0/0/1
+
+```
+C:\>
+C:\>
+C:\>
+C:\>ping 192.168.1.1
+
+Pinging 192.168.1.1 with 32 bytes of data:
+
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 192.168.1.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+```
+
+d. Выполняем show ip dhcp binding для R1 для проверки назначений адресов в DHCP
+
+```
+R1>en
+Password: 
+R1#show ip dhcp binding 
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.1.6      0090.21D4.5B5D           --                     Automatic
+192.168.1.102    00D0.D39E.B8BD           --                     Automatic
+R1#
+```
+
+В окончательном виде топология выглядит так;
+![alt text](image-5.png)
+
+
+
+
