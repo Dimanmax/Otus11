@@ -869,6 +869,8 @@ S1(config-if)#switchport port-security  aging type inactivity
 ```
 Командa `switchport port-security  aging type inactivity` не отработывает.
 
+![alt text](image-7.png)
+
 Проверяем настройки безопасность порта на S1 F0 /6
 
 ```
@@ -919,3 +921,35 @@ S2(config-if)#switchport port-security violation protect
 S2(config-if)#
 ```
 
+
+
+**f.**	Проверка функции безопасности портов на S2 F0/18
+
+```
+S2>
+S2>en
+S2#
+S2#show port-security interface fastEthernet 0/18
+Port Security              : Disabled
+Port Status                : Secure-down
+Violation Mode             : Protect
+Aging Time                 : 60 mins
+Aging Type                 : Absolute
+SecureStatic Address Aging : Disabled
+Maximum MAC Addresses      : 2
+Total MAC Addresses        : 0
+Configured MAC Addresses   : 0
+Sticky MAC Addresses       : 0
+Last Source Address:Vlan   : 0000.0000.0000:0
+Security Violation Count   : 0
+
+S2#
+```
+
+Заного проверил настройки, все верно, но видим что:
+```
+Port Security              : Disabled
+Port Status                : Secure-down
+```
+
+Команда no ip dhcp snooping information option на обоих коммутаторах прописана.
