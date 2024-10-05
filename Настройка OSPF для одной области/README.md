@@ -79,9 +79,9 @@
 Вопрос:
 Какой маршрутизатор является DR? Какой маршрутизатор является BDR? Каковы критерии отбора?
 
-**g.**	На R1 выполните команду show ip route ospf, чтобы убедиться, что сеть R2 Loopback1 присутствует в таблице маршрутизации. Обратите внимание, что поведение OSPF по умолчанию заключается в объявлении интерфейса обратной связи в качестве маршрута узла с использованием 32-битной маски.
+**g.**	На R1 выполните команду `show ip route ospf`, чтобы убедиться, что сеть R2 Loopback1 присутствует в таблице маршрутизации. Обратите внимание, что поведение OSPF по умолчанию заключается в объявлении интерфейса обратной связи в качестве маршрута узла с использованием 32-битной маски.
 
-**h.**	Запустите Ping до  адреса интерфейса R2 Loopback 1 из R1. Выполнение команды ping должно быть успешным.
+**h.**	Запустите Ping до  адреса интерфейса R2 Loopback 1 из R1. Выполнение команды `ping` должно быть успешным.
 Закройте окно настройки.
 
 ###   Часть 3. Оптимизация и проверка конфигурации OSPFv2 для одной области
@@ -97,16 +97,16 @@
 
 **e.**Только на R2 добавьте конфигурацию, необходимую для предотвращения отправки объявлений OSPF в сеть Loopback 1.
 
-**f.**	Измените базовую пропускную способность для маршрутизаторов. После этой настройки перезапустите OSPF с помощью команды clear ip ospf process . Обратите внимание на сообщение консоли после установки новой опорной полосы пропускания.
+**f.**	Измените базовую пропускную способность для маршрутизаторов. После этой настройки перезапустите OSPF с помощью команды `clear ip ospf process` . Обратите внимание на сообщение консоли после установки новой опорной полосы пропускания.
 
 #### Шаг 2. Убедитесь, что оптимизация OSPFv2 реализовалась.
-**a.**	Выполните команду show ip ospf interface g0/0/1 на R1 и убедитесь, что приоритет интерфейса установлен равным 50, а временные интервалы — Hello 30, Dead 120, а тип сети по умолчанию — Broadcast
+**a.**	Выполните команду `show ip ospf interface g0/0/1` на R1 и убедитесь, что приоритет интерфейса установлен равным 50, а временные интервалы — Hello 30, Dead 120, а тип сети по умолчанию — Broadcast
 
 **b.**	На R1 выполните команду show ip route ospf, чтобы убедиться, что сеть R2 Loopback1 присутствует в таблице маршрутизации. Обратите внимание на разницу в метрике между этим выходным и предыдущим выходным. Также обратите внимание, что маска теперь составляет 24 бита, в отличие от 32 битов, ранее объявленных.
 
-**c.**	Введите команду show ip route ospf на маршрутизаторе R2. Единственная информация о маршруте OSPF должна быть распространяемый по умолчанию маршрут R1.
+**c.**	Введите команду `show ip route ospf` на маршрутизаторе R2. Единственная информация о маршруте OSPF должна быть распространяемый по умолчанию маршрут R1.
 
-**d.**	Запустите Ping до адреса интерфейса R1 Loopback 1 из R2. Выполнение команды ping должно быть успешным.
+**d.**	Запустите `ping` до адреса интерфейса R1 Loopback 1 из R2. Выполнение команды ping должно быть успешным.
 
 Вопрос:
 Почему стоимость OSPF для маршрута по умолчанию отличается от стоимости OSPF в R1 для сети 192.168.1.0/24?
@@ -114,8 +114,127 @@
 ## Сводная таблица по интерфейсам маршрутизаторов
 
 ![alt text](image-2.png)
+________________________________________________________
 
 
 # Решение
 
-бла бля бла
+### Часть 1. Создание сети и настройка основных параметров устройства.
+
+#### Шаг 1. Создайте сеть согласно топологии.
+
+Подключаем устройства, как показано в топологии, и подсоединяем необходимые кабели.
+
+Расположение устройств в топологии немного изменил, для того, чтобы было видно какие порты используются.
+
+![alt text](image-3.png)
+
+#### Шаг 2. Производим базовую настройку маршрутизаторов
+
+Базовая настройка R1
+```
+Router>
+Router>en
+Router#conf t
+Router(config)#hostname R1
+R1(config)#no ip domain-lookup
+R1(config)#enable  secret class
+R1(config)#line  console 0
+R1(config-line)#password cisco
+R1(config-line)#login
+R1(config-line)#line vty 0 15
+R1(config-line)#password cisco
+R1(config-line)#login
+R1(config-line)#exit 
+R1(config)#service password-encryption 
+R1(config)#banner motd #DO NOT ENTER#
+R1(config)#exit 
+R1#
+R1#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+```
+
+Базовая настройкa R2
+
+```
+Router>
+Router>en
+Router#conf t
+Router(config)#hostname R2
+R2(config)#no ip domain-lookup 
+R2(config)#enable secret class
+R2(config)#line console 0
+R2(config-line)#password cisco
+R2(config-line)#login
+R2(config-line)#line vty 0 15
+R2(config-line)#password cisco
+R2(config-line)#login 
+R2(config-line)#exit 
+R2(config)#service password-encryption 
+R2(config)#banner motd #Do NOT ENTER#
+R2(config)#exit 
+R2#
+R2#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+R2#
+```
+
+#### Шаг 3. Настраиваем базовые параметры каждого коммутатора.
+
+Настройка S1
+
+```
+Switch>
+Switch>en
+Switch#conf t
+Switch(config)#hostname S1
+S1(config)#no ip domain-lookup 
+S1(config)#enable secret class
+S1(config)#line console 0
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#lin vty 0 15
+S1(config-line)#password cisco
+S1(config-line)#login
+S1(config-line)#exit 
+S1(config)#service password-encryption 
+S1(config)#banner  motd #DO NO ENTER#
+S1(config)#exit 
+S1#
+S1#copy  running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+S1#
+```
+
+Настройка S2
+
+```
+Switch>en
+Switch#conf t
+Switch(config)#hostname S2
+S2(config)#no ip domain-lookup 
+S2(config)#enable secret class
+S2(config)#line console 0
+S2(config-line)#password cisco
+S2(config-line)#login
+S2(config-line)#line vty 0 15
+S2(config-line)#password cisco
+S2(config-line)#login
+S2(config-line)#exit 
+S2(config)#service password-encryption 
+S2(config)#banner motd #DO NOT ENTER#
+S2(config)#exit
+S2#
+S2#copy running-config startup-config 
+Destination filename [startup-config]? startup-config
+Building configuration...
+[OK]
+S2#
+```
+
