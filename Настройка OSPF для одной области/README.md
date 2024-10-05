@@ -238,3 +238,97 @@ Building configuration...
 S2#
 ```
 
+### Часть 2. Настройка и проверка базовой работы протокола OSPFv2 для одной области.
+
+#### Шаг 1. Настраиваем адреса интерфейса и базового OSPFv2 на каждом маршрутизаторе.
+
+**a.**	Настраиваем адреса интерфейсов на каждом маршрутизаторе из таблицы адресации.
+
+Настройка R1
+
+```
+R1>
+R1>en
+Password: 
+R1#
+R1#conf t
+R1(config)#
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#ip address 10.53.0.1 255.255.255.0
+R1(config-if)#no shutdown 
+
+R1(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+R1(config-if)#
+R1(config-if)#exit 
+R1(config)#
+R1(config)#interface loopback0
+
+R1(config-if)#
+%LINK-5-CHANGED: Interface Loopback0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback0, changed state to up
+R1(config-if)#ip address 172.16.1.1 255.255.255.0
+R1(config-if)#exit 
+R1(config)#exit 
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R1#
+R1#wr
+Building configuration...
+[OK]
+R1#
+```
+
+Настройка R2
+
+```
+R2#
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#
+
+R2(config)#interface  gigabitEthernet 0/0/1
+R2(config-if)#ip address 10.53.0.2 255.255.255.0
+R2(config-if)#no sh
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+R2(config-if)#
+R2(config-if)#exit 
+R2(config)#interface loopback 0
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface Loopback0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback0, changed state to up
+
+R2(config-if)#ip address 192.168.1.1 255.255.255.0
+R2(config-if)#no shutdown 
+R2(config-if)#exit 
+R2(config)#exit 
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R2#
+R2#write 
+Building configuration...
+[OK]
+R2#
+```
+
+**b.**	Перейдите в режим конфигурации маршрутизатора OSPF, используя идентификатор процесса 56
+
+**c.**	Настраиваем статический идентификатор маршрутизатора для каждого маршрутизатора (1.1.1.1 для R1, 2.2.2.2 для R2)
+
+**d.**	Настраиваем инструкцию сети для сети между R1 и R2, поместив ее в область 0.
+
+
+
