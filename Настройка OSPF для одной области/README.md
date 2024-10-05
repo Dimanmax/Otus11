@@ -356,5 +356,197 @@ R2#
 
 **d.**	Настраиваем инструкцию сети для сети между R1 и R2, поместив ее в область 0.
 
+Настройка R1
+
+```
+R1#
+R1#configure  terminal 
+R1(config)#router ospf 56
+R1(config-router)#router-id 1.1.1.1
+R1(config-router)#network 10.53.0.0 0.0.0.255 area 0
+R1(config-router)#exit 
+R1(config)#exit 
+R1#
+R1#write 
+Building configuration...
+[OK]
+R1#
+```
+
+Настройка R2
+
+```
+R2>
+R2>en
+Password: 
+R2#
+R2#conf t
+R2(config)#router ospf 56
+R2(config-router)#router-id 2.2.2.2
+R2(config-router)#network 10.53.0.0 0.0.0.255 area 0
+R2(config-router)#
+00:12:19: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+R2(config-router)#
+R2(config-router)#exit 
+R2(config)#exit 
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+wr
+R2#write 
+Building configuration...
+[OK]
+R2#
+```
+**e.**	Только на R2 добавляем конфигурацию, необходимую для объявления сети Loopback 0 в область OSPF 0.
+
+```
+R2#
+R2#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#
+R2(config)#router ospf 56
+R2(config-router)#router-id 2.2.2.2
+R2(config-router)#network 10.53.0.0 0.0.0.255 area 0
+R2(config-router)#network 192.168.1.0 0.0.0.255 area 0
+R2(config-router)#
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.o
+R2(config)#interface loopback 0
+R2(config-if)#exit 
+R2(config)#interface loopback0
+R2(config-if)#ip ospf 56 area 0
+R2(config-if)#
+```
+
+
+
+**f.**	Убедитесь, что OSPFv2 работает между маршрутизаторами. Выполните команду, чтобы убедиться, что R1 и R2 сформировали смежность.
+
+
+R1
+
+```
+R1>show ip ospf neighbor 
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   FULL/BDR        00:00:34    10.53.0.2       GigabitEthernet0/0/1
+R1>
+```
+
+
+Mаршрутизатор R1 является BDR.
+Mаршрутизатор R2 является DR
+
+При выборе DR и BDR используется маршрутизатор с наибольшим идентификатором маршрутизатора.
+
+**g.**	На R1 выполняем команду `show ip route ospf`, чтобы убедиться, что сеть R2 Loopback0 присутствует в таблице маршрутизации.
+
+ Обратите внимание, что поведение OSPF по умолчанию заключается в объявлении интерфейса обратной связи в качестве маршрута узла с использованием 32-битной маски.
+
+```
+
+R1>show ip ospf neighbor 
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   FULL/BDR        00:00:31    10.53.0.2       GigabitEthernet0/0/1
+
+
+R1>show ip route ospf 
+     192.168.1.0/32 is subnetted, 1 subnets
+O       192.168.1.1 [110/2] via 10.53.0.2, 03:08:07, GigabitEthernet0/0/1
+
+R1>
+```
+
+**h.**	Выполняем Ping до  адреса интерфейса R2 Loopback 1 из R1. Выполнение команды ping должно быть успешным.
+R1>ping 192.168.1.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+### Часть 3. Оптимизация и проверка конфигурации OSPFv2 для одной области
+#### Шаг 1. Реализация различных оптимизаций на каждом маршрутизаторе
+
+**a.**	На R1 настраиваем приоритет OSPF интерфейса G0/0/1 на 50, чтобы убедиться, что R1 является назначенным маршрутизатором.
+
+```
+R1#
+R1#conf t
+R1#conf terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#ip os
+R1(config-if)#ip ospf pri
+R1(config-if)#ip ospf priority 50
+R1(config-if)#
+```
+
+**b.** Настраиваем таймеры OSPF на G0/0/1 каждого маршрутизатора для таймера приветствия, составляющего 30 секунд.
+
+
+```
+R1(config)#
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#ip ospf hell
+R1(config-if)#ip ospf hello-interval in
+R1(config-if)#ip ospf hello-interval 30
+R1(config-if)#
+R1(config-if)#
+03:40:09: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from EXSTART to DOWN, Neighbor Down: Dead timer expired
+
+03:40:09: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from EXSTART to DOWN, Neighbor Down: Interface down or detached
+
+03:40:10: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+```
+
+```
+R1(config)#
+R1(config)#
+R1(config)#interface gigabitEthernet 0/0/1
+R1(config-if)#ip ospf hell
+R1(config-if)#ip ospf hello-interval in
+R1(config-if)#ip ospf hello-interval 30
+R1(config-if)#
+R1(config-if)#
+03:40:09: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from EXSTART to DOWN, Neighbor Down: Dead timer expired
+
+03:40:09: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from EXSTART to DOWN, Neighbor Down: Interface down or detached
+
+03:40:10: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+```
+
+
+```
+R2(config)#
+R2(config)#interface gigabitEthernet 0/0/1
+R2(config-if)#ip ospf hello-interval 30
+R2(config-if)#
+03:40:05: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Dead timer expired
+
+03:40:05: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Interface down or detached
+
+03:40:10: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+```
+
+
+**c.**	На R1 настраиваем статический маршрут по умолчанию, который использует интерфейс Loopback 0 в качестве интерфейса выхода. Затем распространяем маршрут по умолчанию в OSPF. Обратите внимание на сообщение консоли после установки маршрута по умолчанию.
+```
+R1(config)#ip route 0.0.0.0 0.0.0.0 loopback0
+%Default route without gateway, if not a point-to-point interface, may impact performance
+R1(config)#
+```
+
+**d.**	добавляем конфигурацию, необходимую для OSPF для обработки R2 Loopback 0 как сети точка-точка. Это приводит к тому, что OSPF объявляет Loopback 0 использует маску подсети интерфейса.
+
+
+
 
 
