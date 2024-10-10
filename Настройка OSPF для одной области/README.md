@@ -546,6 +546,95 @@ R1(config)#
 
 **d.**	добавляем конфигурацию, необходимую для OSPF для обработки R2 Loopback 0 как сети точка-точка. Это приводит к тому, что OSPF объявляет Loopback 0 использует маску подсети интерфейса.
 
+```
+R2>en
+Password: 
+R2#
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#interface l
+R2(config)#interface loopback0
+R2(config-if)#ip ospf network point-to-point 
+R2(config-if)#exit 
+R2(config)#
+```
+
+**e.** На R2 добавляем конфигурацию, необходимую для предотвращения отправки объявлений OSPF в сеть Loopback0.
+
+```
+R2(config)#
+R2(config)#router ospf 56
+R2(config-router)#passive-interface loopback0
+R2(config-router)#exit 
+R2(config)#
+
+```
+
+**f.**	Изменяем базовую пропускную способность для маршрутизаторов. После этой настройки перезапусткаем OSPF с помощью команды clear ip ospf process . Обратите внимание на сообщение консоли после установки новой опорной полосы пропускания.
+
+```
+R1>
+R1>en
+Password: 
+R1#
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#
+R1(config)#router ospf 56
+R1(config-router)#
+R1(config-router)#auto-cost reference-bandwidth 1000
+% OSPF: Reference bandwidth is changed.
+        Please ensure reference bandwidth is consistent across all routers.
+R1(config-router)#
+R1(config)#end
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R1#clear ip ospf process 
+Reset ALL OSPF processes? [no]: yes
+
+R1#
+00:07:36: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Adjacency forced to reset
+
+00:07:36: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Interface down or detached
+
+00:08:00: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+00:09:00: %OSPF-5-ADJCHG: Process 56, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+```
+______________________________________________________________________
+```
+R2(config)#
+R2(config)#router ospf 56
+R2(config-router)#auto-cost reference-bandwidth 1000
+% OSPF: Reference bandwidth is changed.
+        Please ensure reference bandwidth is consistent across all routers.
+R2(config-router)#end
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+
+R2#clear ip ospf  process 
+Reset ALL OSPF processes? [no]: yes
+
+R2#
+00:08:41: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Adjacency forced to reset
+
+00:08:41: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from FULL to DOWN, Neighbor Down: Interface down or detached
+
+00:09:00: %OSPF-5-ADJCHG: Process 56, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+```
+
+Как видим на R1 и на R2 состояние FULL
+
+
+Шаг 2. Убеждаемся, что оптимизация OSPFv2 реализовалась
+
+**a.**	Выполняем команду `show ip ospf interface g0/0/1` на R1 и видим, что приоритет интерфейса установлен равным 50, а временные интервалы — Hello 30, Dead 40, а тип сети по умолчанию — Broadcast
+
+
 
 
 
