@@ -918,6 +918,7 @@ S2(config)#interface fastEthernet 0/18
 S2(config-if)#switchport port-security aging time 60
 S2(config-if)#switchport port-security maximum 2
 S2(config-if)#switchport port-security violation protect 
+S2(config-if)#switchport port-security 
 S2(config-if)#
 ```
 
@@ -930,8 +931,8 @@ S2>
 S2>en
 S2#
 S2#show port-security interface fastEthernet 0/18
-Port Security              : Disabled
-Port Status                : Secure-down
+Port Security              : Enabled
+Port Status                : Secure-up
 Violation Mode             : Protect
 Aging Time                 : 60 mins
 Aging Type                 : Absolute
@@ -942,14 +943,7 @@ Configured MAC Addresses   : 0
 Sticky MAC Addresses       : 0
 Last Source Address:Vlan   : 0000.0000.0000:0
 Security Violation Count   : 0
-
-S2#
 ```
 
-Заного проверил настройки, все верно, но видим что:
-```
-Port Security              : Disabled
-Port Status                : Secure-down
-```
 
 Команда no ip dhcp snooping information option на обоих коммутаторах прописана.
