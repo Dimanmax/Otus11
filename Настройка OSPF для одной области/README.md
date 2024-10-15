@@ -632,10 +632,70 @@ R2#
 
 Шаг 2. Убеждаемся, что оптимизация OSPFv2 реализовалась
 
-**a.**	Выполняем команду `show ip ospf interface g0/0/1` на R1 и видим, что приоритет интерфейса установлен равным 50, а временные интервалы — Hello 30, Dead 40, а тип сети по умолчанию — Broadcast
+**a.**	Выполняем команду `show ip ospf interface g0/0/1` на R1 и видим,
+что приоритет интерфейса установлен равным 50, а временные интервалы — Hello 30, Dead 40, а тип сети по умолчанию — Broadcast
 
 
+вывод с R1
+
+```
+R1#show ip ospf interface g0/0/1
+
+GigabitEthernet0/0/1 is up, line protocol is up
+  Internet address is 10.53.0.1/24, Area 0
+  Process ID 56, Router ID 1.1.1.1, Network Type BROADCAST, Cost: 10
+  Transmit Delay is 1 sec, State DR, Priority 50
+  Designated Router (ID) 1.1.1.1, Interface address 10.53.0.1
+  Backup Designated Router (ID) 2.2.2.2, Interface address 10.53.0.2
+  Timer intervals configured, Hello 30, Dead 40, Wait 40, Retransmit 5
+    Hello due in 00:00:26
+  Index 1/1, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 1, Adjacent neighbor count is 1
+    Adjacent with neighbor 2.2.2.2  (Backup Designated Router)
+  Suppress hello for 0 neighbor(s)
+R1#
+```
 
 
+**b.** На R1 выполняем команду show ip route ospf, чтобы убедиться, что сеть R2 Loopback0 присутствует в таблице маршрутизации. Обратите внимание на разницу в метрике между этим выходным и предыдущим выходным. Также обратите внимание, что маска теперь составляет 24 бита, в отличие от 32 битов, ранее объявленных.
+
+Вывыод с R1
+
+```
+R1#show ip route ospf  
+O    192.168.1.0 [110/10] via 10.53.0.2, 00:50:54, GigabitEthernet0/0/1
+
+R1#
+```
+
+**c.**	Вводим команду show ip route ospf на маршрутизаторе R2. Единственная информация о маршруте OSPF должна быть распространяемый по умолчанию маршрут R1.
 
 
+Вывод на R2
+```
+R2#show ip route  ospf 
+R2#
+R2#
+R2#
+R2#
+
+```
+
+
+**d.** Запускаем `ping` до адреса интерфейса R1 Loopback0 из R2. 
+ping должно быть успешным.
+
+```
+R2#
+R2#ping 172.16.1.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 172.16.1.1, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+
+R2#
+```
