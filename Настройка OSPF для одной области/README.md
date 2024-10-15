@@ -1,4 +1,4 @@
-# Лабораторная работа. Настройка протокола OSPFv2 для одной области
+# Лабораторная работа. Настройка протокола OSPFv2 для одной области.
 
 ## Топология
  
@@ -676,10 +676,10 @@ R1#
 
 Вывод на R2
 ```
-R2#show ip route  ospf 
-R2#
-R2#
-R2#
+R2#show ip route ospf 
+     172.16.0.0/32 is subnetted, 1 subnets
+O       172.16.1.1 [110/10] via 10.53.0.1, 00:04:03, GigabitEthernet0/0/1
+
 R2#
 
 ```
@@ -694,8 +694,8 @@ R2#ping 172.16.1.1
 
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 172.16.1.1, timeout is 2 seconds:
-.....
-Success rate is 0 percent (0/5)
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
 
 R2#
 ```
