@@ -365,6 +365,10 @@ R1(config)#router ospf 56
 R1(config-router)#router-id 1.1.1.1
 R1(config-router)#network 10.53.0.0 0.0.0.255 area 0
 R1(config-router)#exit 
+R1(config)#interface loopback0
+R1(config-if)#ip ospf 56 area 0
+R1(config-if)#
+R1(config-if)#exit 
 R1(config)#exit 
 R1#
 R1#write 
